@@ -1,0 +1,349 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-gold: var(--gold);
+  --color-gold-strong: var(--gold-strong);
+  --color-gold-dim: var(--gold-dim);
+  --color-ivory: var(--ivory);
+  --color-ivory-dim: var(--ivory-dim);
+  --color-charcoal: var(--charcoal);
+  --font-sans: var(--font-plex), "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-naskh: var(--font-naskh), "Traditional Arabic", "Times New Roman", serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ─── الوضع الداكن هو المظهر الأساسي للمكتبة ─── */
+:root,
+.dark {
+  --radius: 0.5rem;
+  --background: #101010;
+  --foreground: #f4efe5;
+  --card: #171511;
+  --card-foreground: #f4efe5;
+  --popover: #1c1914;
+  --popover-foreground: #f4efe5;
+  --primary: #c6a15b;
+  --primary-foreground: #17130a;
+  --secondary: #221e17;
+  --secondary-foreground: #e7dfc9;
+  --muted: #242019;
+  --muted-foreground: #a99f88;
+  --accent: #2a251c;
+  --accent-foreground: #c6a15b;
+  --destructive: #b3502e;
+  --border: rgba(198, 161, 91, 0.16);
+  --input: #26221a;
+  --ring: #c6a15b;
+
+  --gold: #c6a15b;
+  --gold-strong: #dcb972;
+  --gold-dim: #8f7440;
+  --ivory: #f4efe5;
+  --ivory-dim: rgba(244, 239, 229, 0.62);
+  --charcoal: #101010;
+  --wood: #4a3728;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: rgba(198, 161, 91, 0.4);
+    color: #f4efe5;
+  }
+
+  /* أشرطة تمرير رقيقة دافئة */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #3a3325 #14120e;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #14120e;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3a3325;
+    border-radius: 8px;
+    border: 2px solid #14120e;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #57492f;
+  }
+}
+
+@layer components {
+  /* ─── نص ذهبي متدرج للعناوين الكبيرة ─── */
+  .gold-gradient-text {
+    background: linear-gradient(180deg, #ecd297 0%, #c6a15b 55%, #96773c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ─── بطاقة فاخرة ─── */
+  .card-luxury {
+    background: linear-gradient(168deg, rgba(41, 36, 27, 0.55), rgba(23, 21, 16, 0.95));
+    border: 1px solid rgba(198, 161, 91, 0.15);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
+  }
+
+  /* ─── لوح الرف الخشبي ─── */
+  .shelf-board {
+    position: relative;
+    height: 13px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #67513b 0%, #553f2c 14%, #43321f 58%, #2b1f13 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 226, 176, 0.28),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.65),
+      0 6px 18px rgba(0, 0, 0, 0.6),
+      0 2px 5px rgba(0, 0, 0, 0.45);
+  }
+  .shelf-board::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0.32;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.12) 0 2px,
+      transparent 2px 9px,
+      rgba(255, 214, 150, 0.06) 9px 11px,
+      transparent 11px 19px
+    );
+  }
+  /* كوع حامل ذهبي صغير على طرفي الرف */
+  .shelf-bracket {
+    position: absolute;
+    bottom: 13px;
+    width: 10px;
+    height: 10px;
+    border-bottom: 2px solid rgba(198, 161, 91, 0.5);
+    border-inline-start: 2px solid rgba(198, 161, 91, 0.5);
+    border-end-end-radius: 3px;
+  }
+  .shelf-bracket.start {
+    inset-inline-start: 4%;
+  }
+  .shelf-bracket.end {
+    inset-inline-end: 4%;
+    transform: scaleX(-1);
+  }
+
+  /* ─── رفع الكتاب عند المرور عليه ─── */
+  .book-lift {
+    transition:
+      transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+      filter 0.35s,
+      box-shadow 0.35s;
+  }
+  .book-lift:hover,
+  .book-lift:focus-visible {
+    transform: translateY(-10px);
+    filter: brightness(1.1);
+  }
+
+  /* ─── حافة التجليد على أغلفة الكتب ─── */
+  .spine-edge {
+    position: relative;
+    overflow: hidden;
+  }
+  .spine-edge::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 8%;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.5),
+      rgba(255, 240, 200, 0.1) 55%,
+      rgba(0, 0, 0, 0.18)
+    );
+    pointer-events: none;
+  }
+
+  /* ─── غلاف طباعي أنيق للكتب بلا صورة ─── */
+  .cover-typo {
+    background:
+      radial-gradient(130% 90% at 28% 16%, rgba(198, 161, 91, 0.13), transparent 55%),
+      linear-gradient(162deg, #211d16 0%, #15110c 58%, #0e0b08 100%);
+  }
+
+  /* ─── إضاءة دافئة وتظليل جانبي ─── */
+  .glow-warm {
+    background: radial-gradient(62% 48% at 50% 0%, rgba(198, 161, 91, 0.13), transparent 72%);
+  }
+  .lamp-glow {
+    background: radial-gradient(
+      closest-side,
+      rgba(216, 180, 108, 0.17),
+      rgba(216, 180, 108, 0.05) 62%,
+      transparent
+    );
+  }
+  .vignette {
+    position: relative;
+  }
+  .vignette::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(125% 95% at 50% 38%, transparent 52%, rgba(6, 5, 3, 0.6) 100%);
+  }
+
+  /* ─── إطار ذهبي مزدوج ─── */
+  .frame-gold {
+    border: 1px solid rgba(198, 161, 91, 0.3);
+    position: relative;
+  }
+  .frame-gold::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgba(198, 161, 91, 0.15);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* ─── روابط ذهبية ─── */
+  .link-gold {
+    color: var(--gold);
+    text-decoration: none;
+    text-underline-offset: 6px;
+    transition: color 0.25s;
+  }
+  .link-gold:hover {
+    color: var(--gold-strong);
+    text-decoration: underline;
+    text-decoration-color: rgba(198, 161, 91, 0.55);
+  }
+
+  /* ─── نافذة قارئ PDF ─── */
+  .reader-frame {
+    background: #14110d;
+    border: 1px solid rgba(198, 161, 91, 0.22);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+  .reader-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #202020;
+  }
+
+  /* ─── حركات ظهور خفيفة ─── */
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .fade-up {
+    animation: fade-up 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .stagger-1 {
+    animation-delay: 0.07s;
+  }
+  .stagger-2 {
+    animation-delay: 0.14s;
+  }
+  .stagger-3 {
+    animation-delay: 0.21s;
+  }
+  .stagger-4 {
+    animation-delay: 0.28s;
+  }
+
+  @keyframes glow-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  .glow-pulse {
+    animation: glow-pulse 4.5s ease-in-out infinite;
+  }
+
+  /* ─── شبكة أغلفة الكتب ─── */
+  .covers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 1.25rem 1.1rem;
+  }
+  @media (min-width: 640px) {
+    .covers-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1.5rem 1.25rem;
+    }
+  }
+
+  /* ─── تمرير أفقي للرف على الشاشات الصغيرة ─── */
+  .shelf-scroll {
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+  .shelf-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .shelf-scroll > * {
+    scroll-snap-align: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,248 @@
+generator client {
+  provider        = "prisma-client-js"
+  // محوّلات المشغّل: يمكّن وضعين لقاعدة البيانات بنفس المخطط
+  // - محليًا: libsql مع ملف SQLite (file:...)
+  // - في الإنتاج: libsql مع Turso (libsql://...) عبر DATABASE_URL
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── المستخدمون والجلسات ────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         String    @default("READER") // OWNER | EDITOR | READER
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sessions      Session[]
+  favorites     Favorite[]
+  orders        Order[]
+  auditLogs     AuditLog[]
+  uploadedMedia MediaFile[] @relation("Uploader")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ─── المكتبة: التصنيفات والوسوم والكتب ─────────────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  sortOrder   Int      @default(0)
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  books Book[]
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  books BookTag[]
+}
+
+model Book {
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  title            String
+  subtitle         String?
+  authorName       String?
+  shortDescription String?
+  description      String?
+  categoryId       String?
+  category         Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // سيرورة النشر: مسودة / مجدول / منشور / مؤرشف
+  status       String    @default("DRAFT") // DRAFT | SCHEDULED | PUBLISHED | ARCHIVED
+  availability String    @default("AVAILABLE") // AVAILABLE | UPCOMING | UNAVAILABLE
+  publishAt    DateTime?
+  pages        Int?
+  publishYear  Int?
+  isbn         String?
+  publisher    String?
+
+  // البيع
+  price    Float?
+  currency String  @default("KWD")
+  forSale  Boolean @default(false)
+
+  // القراءة الرقمية
+  readingEnabled  Boolean @default(false)
+  downloadEnabled Boolean @default(false)
+
+  // الوسائط
+  coverImageId     String?
+  coverImage       MediaFile? @relation("BookCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  fullCoverImageId String?
+  fullCoverImage   MediaFile? @relation("BookFullCover", fields: [fullCoverImageId], references: [id], onDelete: SetNull)
+  attachmentId     String?
+  attachment       MediaFile? @relation("BookAttachment", fields: [attachmentId], references: [id], onDelete: SetNull)
+
+  seoTitle       String?
+  seoDescription String?
+  featured       Boolean  @default(false)
+  sortOrder      Int      @default(0)
+  viewCount      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tags          BookTag[]
+  galleryImages BookImage[]
+  favorites     Favorite[]
+  orderItems    OrderItem[]
+}
+
+model BookTag {
+  bookId String
+  tagId  String
+  book   Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, tagId])
+}
+
+model BookImage {
+  id        String    @id @default(cuid())
+  bookId    String
+  mediaId   String
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  book      Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  media     MediaFile @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+}
+
+model MediaFile {
+  id           String   @id @default(cuid())
+  filename     String // الاسم المخزن على القرص (عشوائي)
+  originalName String
+  mimeType     String
+  size         Int
+  kind         String   @default("ASSET") // COVER | GALLERY | PDF | PORTRAIT | LOGO | ASSET
+  isPublic     Boolean  @default(false)
+  uploadedById String?
+  uploader     User?    @relation("Uploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  bookCovers       Book[] @relation("BookCover")
+  bookFullCovers   Book[] @relation("BookFullCover")
+  bookAttachments  Book[] @relation("BookAttachment")
+  galleryLinks     BookImage[]
+}
+
+// ─── إعدادات الموقع والصفحات ────────────────────────────────────────
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  slug      String   @unique // privacy | terms | faq | store-policy
+  title     String
+  content   String   @default("")
+  published Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── القراء: المفضلة ────────────────────────────────────────────────
+
+model Favorite {
+  userId    String
+  bookId    String
+  createdAt DateTime @default(now())
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@id([userId, bookId])
+}
+
+// ─── المتجر والطلبات ────────────────────────────────────────────────
+
+model Order {
+  id          String   @id @default(cuid())
+  orderNumber String   @unique
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  address       String?
+  notes         String?
+  status        String   @default("NEW") // NEW | PROCESSING | COMPLETED | CANCELLED
+  paid          Boolean  @default(false)
+  paymentMethod String?
+  total         Float    @default(0)
+  currency      String   @default("KWD")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  bookId        String?
+  book          Book?   @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  titleSnapshot String
+  quantity      Int     @default(1)
+  unitPrice     Float   @default(0)
+  type          String  @default("PAPER") // PAPER | DIGITAL
+}
+
+// ─── السجلات والتحليلات ─────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  userName  String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String // LOGIN, LOGIN_FAILED, BOOK_CREATE, BOOK_UPDATE, BOOK_PUBLISH, ...
+  entity    String?
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model SiteVisit {
+  id        String   @id @default(cuid())
+  path      String
+  createdAt DateTime @default(now())
+}
